@@ -40,9 +40,11 @@ int main(argc, argv)
 	serial_device = argv[1];
 	network_interface = argv[2];
 	
+  #if DAEMON
   //start daemon
   daemonize();
   write_pid();
+  #endif
 
   //start threads
 

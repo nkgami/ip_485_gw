@@ -11,6 +11,7 @@
 #define _GNU_SOURCE
 
 #define DEBUG 0
+#define DAEMON 1
 
 #include <sys/types.h>
 #include <pthread.h>
