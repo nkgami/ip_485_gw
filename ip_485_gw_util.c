@@ -10,6 +10,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 #include "ip_485_gw_util.h"
 
 int fd = -1;//serial fd
@@ -18,6 +19,7 @@ char *serial_device;
 
 pthread_mutex_t mutex1,mutex2;
 pthread_cond_t cond2 = PTHREAD_COND_INITIALIZER;
+pthread_t tid1,tid2,tid3;
 
 struct frame_queue *sendque_head;
 struct frame_queue *recvque_head;
@@ -84,6 +86,11 @@ unsigned short checksum(unsigned short *buf, int bufsize)
 }
 
 void sigcatch(){
-	printf("stop by user\n");
+	pthread_kill(tid1,SIGTERM);
+	pthread_kill(tid2,SIGTERM);
+	pthread_kill(tid3,SIGTERM);
+	pthread_mutex_destroy(&mutex1);
+	pthread_mutex_destroy(&mutex2);
+	pthread_cond_destroy(&cond2);
 	exit(1);
 }

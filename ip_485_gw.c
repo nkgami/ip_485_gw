@@ -25,7 +25,6 @@ int main(argc, argv)
     int argc;
     char *argv[];
 {
-	pthread_t tid1,tid2,tid3;
   sendque_total = 0;
   recvque_total = 0;
 
@@ -45,8 +44,6 @@ int main(argc, argv)
   daemonize();
   write_pid();
   #endif
-
-  //start threads
 
 	//set mutex
 	pthread_mutex_init(&mutex1, NULL);

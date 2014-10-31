@@ -47,6 +47,9 @@ extern struct frame_queue *recvque_head;
 extern int sendque_total;
 extern int recvque_total;
 
+//threads
+extern pthread_t tid1,tid2,tid3;
+
 struct sniff_ip {
         u_char ip_vhl;      /* version << 4 | header length >> 2 */
         u_char ip_tos;      /* type of service */
