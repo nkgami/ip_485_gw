@@ -38,12 +38,14 @@
 extern int fd;//serial fd
 extern char *network_interface;
 extern char *serial_device;
+extern char *log_file;
 
 extern pthread_mutex_t mutex1,mutex2;
 extern pthread_cond_t cond2;
 
 extern struct frame_queue *sendque_head;
 extern struct frame_queue *recvque_head;
+extern char *log_message;
 extern int sendque_total;
 extern int recvque_total;
 
