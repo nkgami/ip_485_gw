@@ -1,0 +1,12 @@
+/var/log/ip_485_gw.log
+{
+	rotate 7
+	daily
+	missingok
+	notifempty
+	delaycompress
+	compress
+	postrotate
+	  /etc/init.d/ip_485_gw restart > /dev/null
+	endscript
+}

@@ -16,6 +16,8 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 //for Ethernet
 #define SIZE_ETHERNET 14
@@ -26,7 +28,7 @@
 
 #define MAX_LENGTH 1500
 
-//9600bps
+//115200bps
 #define BAUDRATE B115200
 
 #define BUFFSIZE 2000
@@ -35,22 +37,30 @@
 #define FALSE 0
 #define TRUE 1
 
+#define ERRTO 200000
+
 extern int fd;//serial fd
+extern FILE *fplog;//log
 extern char *network_interface;
 extern char *serial_device;
 extern char *log_file;
+extern char *log_file;
 
 extern pthread_mutex_t mutex1,mutex2;
+extern pthread_mutex_t mutexlog;
 extern pthread_cond_t cond2;
+extern pthread_cond_t condlog;
 
 extern struct frame_queue *sendque_head;
 extern struct frame_queue *recvque_head;
-extern char *log_message;
 extern int sendque_total;
 extern int recvque_total;
 
+extern struct msg_queue *msgque_head;
+extern int msgque_total;
+
 //threads
-extern pthread_t tid1,tid2,tid3;
+extern pthread_t tid1,tid2,tid3,tid4;
 
 struct sniff_ip {
         u_char ip_vhl;      /* version << 4 | header length >> 2 */
@@ -97,10 +107,17 @@ struct frame_queue{
 	struct frame_queue *next;
 };
 
+//log message queue
+struct msg_queue{
+  char msg[200];
+  struct msg_queue *next;
+};
+
 //threads
 void* serial_control(void* pParam);
 void* pcap_control(void* pParam);
 void* raw_socket(void* pParam);
+void* logger(void* pParam);
 
 //init serial port  
 void serial_init(int fd);
@@ -110,5 +127,8 @@ unsigned short crc( unsigned const char *pData, unsigned long lNum );
 unsigned short checksum(unsigned short *buf, int bufsize);
 
 void sigcatch();
+
+void enq_log(char *msg);
+void enq_log_ip(unsigned char *ipmsg, char *head_msg);
 
 #endif

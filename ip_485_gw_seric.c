@@ -34,32 +34,41 @@ void *serial_control(void *pParam){
 	int queue_hop = 0,l;
 	struct sniff_ip *ip_hdr;
 	int writecount;
+  char message[150];
 
 	//for timeout
 	int res,res2;
 	struct timeval Timeout,Timeout2;
-
-	printf("serial device:%s\n",serial_device);
-
+	
 	fd = open(serial_device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
 	if(fd < 0){
-		printf("fd:%d\n",fd);
-		perror(serial_device);
-		exit(-1);
+    sprintf(message,"fd:%d %s\n",fd,serial_device);
+    enq_log(message);
+    #if !DAEMON
+      fprintf(stderr,"fd:%d %s\n",fd,serial_device);
+    #endif
+    usleep(ERRTO);
+		exit(1);
 	}
-	maxfd = fd+1;//for select()
+  maxfd = fd+1;//for select()
 	tcgetattr(fd,&oldtio);//save the old settings
 	//pripare for serial
 	serial_init(fd);
-	printf("flush\n");//flush buffer
+  #if DEBUG && !DAEMON
+	  printf("flush\n");//flush buffer
+  #endif
 	sleep(2);
 	tcflush(fd,TCIOFLUSH);
 	sleep(2);
-	printf("start serial\n");
 	maxfd = fd+1;//for select
 	FD_ZERO(&readfs);
 	FD_SET(fd,&readfs);
 	srand((unsigned)time(NULL));
+	sprintf(message,"thread: start serial\n");
+  enq_log(message);
+  #if !DAEMON
+    printf("thread: start serial\n");
+  #endif
 	while(1){
 		Timeout.tv_usec = 5000;  /* micro sec */
 		Timeout.tv_sec  = 0;  /* sec */
@@ -89,7 +98,7 @@ void *serial_control(void *pParam){
 						free(temp);
 						sendque_total--;
 					}
-					#if DEBUG
+					#if DEBUG && !DAEMON
 						printf("dequeue-send:%d\n",writecount);
 					#endif
 				}
@@ -101,23 +110,23 @@ void *serial_control(void *pParam){
 		}
 		if(FD_ISSET(fd,&fds)){
 			read(fd,&read_c,1);
-			#if DEBUG
+			#if DEBUG && !DAEMON
 				printf("%02x ",read_c);
 			#endif
 			readbuf[i++] = read_c;
 			if(i == 1){
 				hdr_len = (unsigned short)read_c;
-				#if DEBUG
+				#if DEBUG && !DAEMON
 					printf("hdrlen:%d\n",hdr_len);
 				#endif
 			}
 			else if(i == 2){
-				#if DEBUG
+				#if DEBUG && !DAEMON
 					printf("hdrtype:%d\n",read_c);
 				#endif
 			}
 			else if(i == 3){
-				#if DEBUG
+				#if DEBUG && !DAEMON
 					printf("nexthdr:%d\n",read_c);
 				#endif
 			}
@@ -127,23 +136,25 @@ void *serial_control(void *pParam){
 			else if(i == hdr_len+4){
 				ip_len_2 = read_c;
 				ip_len = ((unsigned short)(ip_len_1)<<8)+(unsigned short)(ip_len_2);
-				#if DEBUG
+				#if DEBUG && !DAEMON
 					printf("ip_len:%x\n",ip_len);
 				#endif
 			}
 			else if(i == ip_len+hdr_len){
-				#if DEBUG
+				#if DEBUG && !DAEMON
 					printf("end of ip\n");
 				#endif
 			}
 			else if(i == ip_len+hdr_len+2){
-				#if DEBUG
+				#if DEBUG && !DAEMON
 					printf("end of frame\n");
 				#endif
 				//CRC,checksum check
 				recv_crc = crc(readbuf,ip_len+hdr_len);
 				if(readbuf[ip_len+hdr_len]==(recv_crc&0xff) && readbuf[ip_len+hdr_len+1]==((recv_crc>>8)&0xff)){
-					printf("CRC_OK\n");
+          #if DEBUG && !DAEMON
+            printf("CRC_OK\n");
+          #endif
 					
 					//send to raw socket by queue
 					pthread_mutex_lock(&mutex2);
@@ -173,7 +184,7 @@ void *serial_control(void *pParam){
 						temp_s->next = addque;
 						recvque_total++;
 					}
-					#if DEBUG
+					#if DEBUG && !DAEMON
 						printf("enqueue_recv:%d\n",queue_hop);
 						printf("recvque_total:%d\n",recvque_total);
 					#endif
@@ -183,7 +194,7 @@ void *serial_control(void *pParam){
 					printf("CRC_NG\n");
 				}
 				ip_hdr = (struct sniff_ip*)(readbuf+hdr_len);
-				#if DEBUG
+				#if DEBUG && !DAEMON
 					printf("ip_id:%d\n",ip_hdr->ip_id);
 				#endif
 				//reset param

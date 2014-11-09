@@ -10,6 +10,7 @@
 #include <pcap.h>
 #include <string.h>
 #include <netinet/if_ether.h>
+#include <unistd.h>
 #include "ip_485_gw_pcapc.h"
 
 int enqueue_send(h_ip,ip_len)
@@ -47,6 +48,7 @@ int enqueue_send(h_ip,ip_len)
 	u_char *send_data;
 	unsigned long data_len,frame_len;
 	unsigned int hdr_len = 3;
+  char message[200];
 	
 	//header setting
 	framehdr[0] = hdr_len;//header length
@@ -57,8 +59,13 @@ int enqueue_send(h_ip,ip_len)
 	data_len = hdr_len+ip_len;//framehdr+ip for CRC
 	send_data = (u_char*)malloc(frame_len);
 	if(send_data == NULL){
-		fprintf(stderr,"cannot malloc\n");
-		exit(EXIT_FAILURE);
+		sprintf(message,"error: cannot malloc\n");
+    enq_log(message);
+    #if !DAEMON
+		  fprintf(stderr,"error: cannot malloc\n");
+    #endif
+    usleep(ERRTO);
+		exit(1);
 	}
 	//set frame_header
 	for(k = 0;k < hdr_len;k++){
@@ -85,9 +92,14 @@ int enqueue_send(h_ip,ip_len)
 	if(sendque_total == 0){
 		sendque_total = 1;
 		sendque_head = (struct frame_queue*)malloc(sizeof(struct frame_queue));
-		if(sendque_head == NULL){
-			fprintf(stderr,"cannot malloc\n");
-			exit(EXIT_FAILURE);
+    if(sendque_head == NULL){
+      sprintf(message,"error: cannot malloc\n");
+      enq_log(message);
+      #if !DAEMON
+        fprintf(stderr,"error: cannot malloc\n");
+      #endif
+      usleep(ERRTO);
+      exit(1);
 		}
 		sendque_head->length = frame_len;
 		for(l = 0;l < frame_len;l++){
@@ -117,7 +129,7 @@ int enqueue_send(h_ip,ip_len)
 	}
 	free(send_data);
 	send_data = NULL;
-	#if DEBUG
+	#if DEBUG && !DAEMON
 		printf("enqueue_send:%d\n",queue_hop);
 	#endif
 	pthread_mutex_unlock(&mutex1);
@@ -138,7 +150,7 @@ void receiver(userdata, h, p)
 	eh = (struct ether_header *)p;
 	u_char net_addr[4];
   uint32_t net_addr_i;
-  #if DEBUG
+  #if DEBUG && !DAEMON
   uint32_t src_addr;
   int j;
   #endif
@@ -160,14 +172,16 @@ void receiver(userdata, h, p)
 		//send to queue
 		if(dst_addr>>8 == net_addr_i>>8){
 			h_ip = (u_char*)ip;
-			#if DEBUG
+			#if DEBUG && !DAEMON
 				printf("debug\n");
 				for(j = 0;j <ntohs(ip->ip_len);j++){
 					printf("%02x ",h_ip[j]);
 				}
 				printf("\n");
 			#endif
+      enq_log_ip((unsigned char*)h_ip, "que (485): ");
 			enqueue_send(h_ip,ntohs(ip->ip_len));
+
 		}
 	}
 	/*/
@@ -183,13 +197,13 @@ void receiver(userdata, h, p)
 }
 
 void *pcap_control(void *pParam){
-	printf("network interface:%s\n",network_interface);
 	char *device;
 	pcap_t *pd;
 	int snaplen = 2000;
 	int pflag = 0;
 	int timeout = 1000;
 	char ebuf[PCAP_ERRBUF_SIZE];
+  char message[200];
 	bpf_u_int32 localnet, netmask;
 	pcap_handler callback;
 	//struct bpf_program fcode;
@@ -197,17 +211,30 @@ void *pcap_control(void *pParam){
 	device = network_interface;
 	/* open network interface with on-line mode */
 	memset(ebuf,0,sizeof(ebuf));
-	printf("OPEN\n");
+  #if DEBUG && !DAEMON
+	  printf("network interface:%s\n",network_interface);
+    printf("OPEN\n");
+  #endif
 	if ((pd = pcap_open_live(device, snaplen, !pflag, timeout, ebuf)) == NULL) {
-		fprintf(stderr, "Can't open pcap deivce\n");
+    sprintf(message, "error: Can't open pcap deivce\n");
+    enq_log(message);
+    #if !DAEMON
+      fprintf(stderr, "error: Can't open pcap deivce\n");
+    #endif
+    usleep(ERRTO);
 		exit(1);
 	}
 
 	/* get informations of network interface */
 	if (pcap_lookupnet(device, &localnet, &netmask, ebuf) < 0) {
-		fprintf(stderr, "Can't get interface informartions\n");
+		  sprintf(message, "error: Can't get interface informartions\n");
+      enq_log(message);
+    #if !DAEMON
+		  fprintf(stderr, "error: Can't get interface informartions\n");
+    #endif
+    usleep(ERRTO);
 		exit(1);
-    	}
+   }
 	/* setting and compiling packet filter */
 	
 	/* set call back function for output */
@@ -217,14 +244,22 @@ void *pcap_control(void *pParam){
 	/* loop packet capture util picking 1024 packets up from interface. */
 	/* after 1024 packets dumped, pcap_loop function will finish. */
 	/* argument #4 NULL means we have no data to pass call back function. */
-	printf("start capture\n");
+  sprintf(message,"thread: start pcap\n");
+  enq_log(message);
+  #if !DAEMON
+    printf("thread: start pcap\n");
+  #endif
 	if (pcap_loop(pd,0, callback, NULL) < 0) {
-		(void)fprintf(stderr, "pcap_loop: error occurred\n");
-		exit(1);
+		sprintf(message, "pcap_loop: error occurred\n");
+    enq_log(message);
+    #if !DAEMON
+		  fprintf(stderr, "pcap_loop: error occurred\n");
+    #endif
+    usleep(ERRTO);
+    exit(1);
 	}
 
 	/* close capture device */
-	printf("pcap_stoped\n");
 	pcap_close(pd);
-	exit(0);
+  exit(0);
 }
