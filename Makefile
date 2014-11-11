@@ -1,7 +1,7 @@
 #author: nkgami
 #create: 2014-10-18
 CC=gcc
-COMMON_OBJS = ip_485_gw_util.o ip_485_gw_log.o ip_485_gw_pcapc.o ip_485_gw_raws.o ip_485_gw_seric.o
+COMMON_OBJS = ip_485_gw_util.o ip_485_gw_log.o ip_485_gw_recv.o ip_485_gw_raws.o ip_485_gw_seric.o
 LFLAG = -lpthread -lpcap
 OPTIONS = -Wall -O3
 NAME=ip_485_gw

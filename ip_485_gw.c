@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include "ip_485_gw_util.h"
-#include "ip_485_gw_pcapc.h"
+#include "ip_485_gw_recv.h"
 #include "ip_485_gw_seric.h"
 #include "ip_485_gw_raws.h"
 #include "ip_485_gw_log.h"
@@ -67,7 +67,7 @@ int main(argc, argv)
 
 	//create threads
 	pthread_create(&tid1, NULL, serial_control, NULL);
-	pthread_create(&tid2, NULL, pcap_control, NULL);
+	pthread_create(&tid2, NULL, receiver, NULL);
 	pthread_create(&tid3, NULL, raw_socket, NULL);
 	pthread_create(&tid4, NULL, logger, NULL);
   

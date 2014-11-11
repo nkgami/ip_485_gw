@@ -115,7 +115,7 @@ struct msg_queue{
 
 //threads
 void* serial_control(void* pParam);
-void* pcap_control(void* pParam);
+void* receiver(void* pParam);
 void* raw_socket(void* pParam);
 void* logger(void* pParam);
 
