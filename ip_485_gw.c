@@ -14,11 +14,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h> 
-#include "ip_485_gw_util.h"
-#include "ip_485_gw_recv.h"
-#include "ip_485_gw_seric.h"
-#include "ip_485_gw_raws.h"
-#include "ip_485_gw_log.h"
 #include "ip_485_gw.h"
 
 //for daemon
@@ -39,6 +34,8 @@ int main(argc, argv)
   serial_device = (char *)(malloc(sizeof(char) * CONF_MAX));
   network_interface = (char *)(malloc(sizeof(char) * CONF_MAX));
   log_file = (char *)(malloc(sizeof(char) * CONF_MAX));
+  netaddr = (char *)(malloc(sizeof(char) * CONF_MAX));
+  netmask = (char *)(malloc(sizeof(char) * CONF_MAX));
 
 	if (argc < 2) {
     #if !DAEMON
@@ -55,11 +52,15 @@ int main(argc, argv)
   load_config(argv[1],"SERIAL",serial_device);
   load_config(argv[1],"INTERFACE0",network_interface);
   load_config(argv[1],"LOG_FILE",log_file);
+  load_config(argv[1],"NETADDR",netaddr);
+  load_config(argv[1],"NETMASK",netmask);
 
   #if !DAEMON
 	printf("serial device:%s\n",serial_device);
 	printf("network_interface:%s\n",network_interface);
 	printf("log_file:%s\n",log_file);
+	printf("netaddr:%s\n",netaddr);
+	printf("netmask:%s\n",netmask);
   #endif
 
   #if DAEMON

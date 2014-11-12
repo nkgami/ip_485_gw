@@ -23,6 +23,8 @@ int fd = -1;//serial fd
 char *network_interface;
 char *serial_device;
 char *log_file;
+char *netaddr;
+char *netmask;
 FILE *fplog;//log
 
 pthread_mutex_t mutex1,mutex2, mutexlog;

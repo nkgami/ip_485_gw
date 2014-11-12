@@ -49,6 +49,8 @@ extern FILE *fplog;//log
 extern char *serial_device;
 extern char *network_interface;
 extern char *log_file;
+extern char *netaddr;
+extern char *netmask;
 
 extern pthread_mutex_t mutex1,mutex2;
 extern pthread_mutex_t mutexlog;

@@ -32,7 +32,13 @@ void check_and_enqueue (unsigned char *buf, int i);
 #if DEBUG && !DAEMON
 void hexdump(unsigned char *p, int count);
 #endif
+uint32_t str_to_bin_addr(char *str);
+int check_inet_addr(char *str);
 
+char *net_addr_s;
+char *net_mask_s;
+uint32_t net_addr_i;
+uint32_t net_mask_i;
 int pd = -1;
  
 void* receiver(void *pParam){
@@ -44,7 +50,34 @@ void* receiver(void *pParam){
   char *interface = network_interface;
   char message[150];
 
-	pd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP));
+  //for ipv6
+	//const struct sniff_ipv6 *ipv6;
+
+  net_addr_s = netaddr;
+  net_mask_s = netmask;
+
+  if(check_inet_addr(net_addr_s) == -1){
+		sprintf(message,"error: net_addr\n");
+    enq_log(message);
+    #if !DAEMON
+		  fprintf(stderr,"error: net_addr\n");
+    #endif
+    usleep(ERRTO);
+		exit(1);
+  }
+  net_addr_i = str_to_bin_addr(net_addr_s);
+  if(check_inet_addr(net_mask_s) == -1){
+		sprintf(message,"error: net_mask\n");
+    enq_log(message);
+    #if !DAEMON
+		  fprintf(stderr,"error: net_mask\n");
+    #endif
+    usleep(ERRTO);
+		exit(1);
+  }
+  net_mask_i = str_to_bin_addr(net_mask_s);
+
+	pd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (pd == -1) {
 		sprintf(message,"error:socket\n");
     enq_log(message);
@@ -89,7 +122,7 @@ void* receiver(void *pParam){
 
   memset(&sll, 0xff, sizeof(sll));
 	sll.sll_family = AF_PACKET;	/* allways AF_PACKET */
-	sll.sll_protocol = htons(ETH_P_IP);
+	sll.sll_protocol = htons(ETH_P_ALL);
 	sll.sll_ifindex = ifindex;
 	if (bind(pd, (struct sockaddr *)&sll, sizeof sll) == -1) {
 		sprintf(message,"error:bind\n");
@@ -147,29 +180,16 @@ void check_and_enqueue(unsigned char *p, int count){
 	const u_char *h_ip;
 	uint32_t dst_addr;
 	eh = (struct ether_header *)p;
-	u_char net_addr[4];
-  uint32_t net_addr_i;
   #if DEBUG && !DAEMON
   uint32_t src_addr;
   int j;
   #endif
-  //for ipv6
-	//const struct sniff_ipv6 *ipv6;
-
-	net_addr[0] = 192;
-	net_addr[1] = 168;
-	net_addr[2] = 11;
-	net_addr[3] = 0;
-	
-	for(i = 0;i< 4;i++){
-		net_addr_i = (net_addr_i<<8)+net_addr[i];
-    	}
 	if (ntohs (eh->ether_type) == ETHERTYPE_IP){
 		ip = (struct sniff_ip*)(p + SIZE_ETHERNET);
 		//src_addr = ntohl(ip->ip_src.s_addr);
 		dst_addr = ntohl(ip->ip_dst.s_addr);
 		//send to queue
-		if(dst_addr>>8 == net_addr_i>>8){
+		if((dst_addr&net_mask_i) == (net_addr_i&net_mask_i)){
 			h_ip = (u_char*)ip;
 			#if DEBUG && !DAEMON
 				printf("debug\n");
@@ -329,3 +349,20 @@ void hexdump(unsigned char *p, int count)
 	}
 }
 #endif
+
+int check_inet_addr(char *str)
+{
+  struct in_addr inp;
+  if(inet_aton(str, &inp) == 0){
+    return -1;
+  }
+  else{
+    return 0;
+  }
+}
+uint32_t str_to_bin_addr(char *str)
+{
+  struct in_addr inp;
+  inet_aton(str, &inp);
+  return ntohl(inp.s_addr);
+}

@@ -1,15 +1,13 @@
 IP Over RS485 Gateway
 ====
 
-Overview
-
 ## Description
 IP Over RS485 Gateway Program
 
 ## Requirement
 Linux and gcc (to build this program)
-
 Debian or Ubuntu (to use init script)
+module dummy
 
 ## Install
 to build this program, just do:
@@ -26,17 +24,22 @@ uninstall:
 
 `# make uninstall`
 
+You also need dummy interface to use this program correctly.
+
+`# modprobe dummy`
+
+set same address as config file: /etc/ip\_485\_gw.conf
+
 ## Usage
 for damenon:
 
 `# /etc/init.d/ip_485_gw start | stop | status`
 
-to change the serial device or ip interface, edit /etc/init.d/ip\_485\_gw
-and change 'INETINTERFACE' and 'SERIALDEVICE' section
+to change settings, edit /etc/ip\_485\_gw.conf
 
 for cli:
 
-`# ./ip_485_gw /dev/ttyUSB0 eth0`
+`# ./ip_485_gw (path_to_config_file ex. ip_485_gw_conf)`
 
 ## Licence
 
