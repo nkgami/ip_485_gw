@@ -7,7 +7,6 @@ IP Over RS485 Gateway Program
 ## Requirement
 Linux and gcc (to build this program)
 Debian or Ubuntu (to use init script)
-module dummy
 
 ## Install
 to build this program, just do:
@@ -24,11 +23,23 @@ uninstall:
 
 `# make uninstall`
 
-You also need dummy interface to use this program correctly.
+If you want to set ip address to RS-485 side, use dummy interface.
 
 `# modprobe dummy`
 
-set same address as config file: /etc/ip\_485\_gw.conf
+set same address range as config file: /etc/ip\_485\_gw.conf
+
+example for dummy interface:
+
+interface setting:dummy0 192.168.11.1 netmask 255.255.255.0
+
+configfile-NETADDR:192.168.11.0
+
+configfile-NETMASK:255.255.255.0
+
+configfile-INTERFACE0:dummy0
+
+When you use dummy0, you need to enable ipv4 forwarding.
 
 ## Usage
 for damenon:
@@ -39,7 +50,7 @@ to change settings, edit /etc/ip\_485\_gw.conf
 
 for cli:
 
-`# ./ip_485_gw (path_to_config_file ex. ip_485_gw_conf)`
+`# ./ip_485_gw path_to_config_file ex. ip_485_gw_conf`
 
 ## Licence
 
