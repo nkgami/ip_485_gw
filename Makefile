@@ -21,11 +21,13 @@ install: all
 	install -o root -g root -m 0755 ${NAME} /usr/local/sbin/${NAME}
 	install -o root -g root -m 0755 ${NAME}_initsh /etc/init.d/${NAME}
 	install -o root -g root -m 0644 ${NAME}_logrotate /etc/logrotate.d/${NAME}
+	install -o root -g root -m 0644 ${NAME}_conf /etc/${NAME}.conf
 
 uninstall:
 	/etc/init.d/${NAME} stop
 	rm -f /usr/local/sbin/${NAME}
 	rm -f /etc/init.d/${NAME}
 	rm -f /etc/logrotate.d/${NAME}
+	rm -f /etc/${NAME}.conf
   
 .PHONY: all clean install uninstall

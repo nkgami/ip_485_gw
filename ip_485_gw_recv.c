@@ -100,6 +100,11 @@ void* receiver(void *pParam){
     usleep(ERRTO);
 		exit(1);
 	}
+  sprintf(message,"thread: start receiver\n");
+  enq_log(message);
+  #if !DAEMON
+    printf("thread: start receiver\n");
+  #endif
 
 	do {
 		fd_set fds;

@@ -49,6 +49,7 @@ void *raw_socket(void *pParam){
 		exit(1);
 	}
   sprintf(message,"thread: start raw_socket\n");
+  enq_log(message);
   #if !DAEMON
     printf("thread: start raw_socket\n");
   #endif

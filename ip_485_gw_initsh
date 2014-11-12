@@ -19,10 +19,8 @@ PATH=$PATH:/sbin:/usr/sbin:/bin:/usr/bin
 DESC="ip-485-gateway"
 NAME=ip_485_gw
 DAEMON=/usr/local/sbin/$NAME
-INETINTERFACE=eth0
-SERIALDEVICE=/dev/ttyUSB0
-LOGFILE=/var/log/${NAME}.log
-DAEMON_ARGS="${SERIALDEVICE} ${INETINTERFACE} ${LOGFILE}"
+CONFFILE=/etc/${NAME}.conf
+DAEMON_ARGS="${CONFFILE}"
 PIDFILE=/var/run/${NAME}.pid
 SCRIPTNAME=/etc/init.d/${NAME}
 

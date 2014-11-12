@@ -37,13 +37,17 @@
 #define FALSE 0
 #define TRUE 1
 
+//time before exit(usec)
 #define ERRTO 200000
+
+//for config
+#define STR_MAX 300
+#define CONF_MAX 250
 
 extern int fd;//serial fd
 extern FILE *fplog;//log
-extern char *network_interface;
 extern char *serial_device;
-extern char *log_file;
+extern char *network_interface;
 extern char *log_file;
 
 extern pthread_mutex_t mutex1,mutex2;
