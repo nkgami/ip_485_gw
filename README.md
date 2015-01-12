@@ -52,6 +52,11 @@ for cli:
 
 `# ./ip_485_gw path_to_config_file ex. ip_485_gw_conf`
 
+## Network Example
+![NetworkExample](https://raw.githubusercontent.com/wiki/nkgami/ip_485_gw/images/net_example.png)
+Program for arduino node is here [ARIP](https://github.com/nkgami/ARIP). check the example/ in this repository.
+
+
 ## Licence
 
 [MIT](https://github.com/tcnksm/tool/blob/master/LICENCE)
